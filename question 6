@@ -1,0 +1,28 @@
+    def observeUpdate(self, observation: int, gameState: busters.GameState):
+        """
+        Update beliefs based on the distance observation and Pacman's position.
+
+        The observation is the noisy Manhattan distance to the ghost you are
+        tracking.
+
+        self.allPositions is a list of the possible ghost positions, including
+        the jail position. You should only consider positions that are in
+        self.allPositions.
+
+        The update model is not entirely stationary: it may depend on Pacman's
+        current position. However, this is not a problem, as Pacman's current
+        position is known.
+        """
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+
+        newBeliefs = DiscreteDistribution()
+
+        for pos in self.allPositions:
+            obsProb = self.getObservationProb(observation, pacmanPosition, pos, jailPosition)
+            newBeliefs[pos] = self.beliefs[pos] * obsProb
+
+        self.beliefs = newBeliefs
+        self.beliefs.normalize()
+P(Ghost = pos | old observations, new observation)
+∝ P(new observation | Ghost = pos) * P(Ghost = pos | old observations)
