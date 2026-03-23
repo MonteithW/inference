@@ -1,0 +1,53 @@
+def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
+
+    def inferenceByVariableElimination(bayesNet: bn, queryVariables: List[str], evidenceDict: Dict, eliminationOrder: List[str]):
+        """
+        This function should perform a probabilistic inference query that
+        returns the factor:
+
+        P(queryVariables | evidenceDict)
+
+        It should perform inference by interleaving joining on a variable
+        and eliminating that variable, in the order of variables according
+        to eliminationOrder.  See inferenceByEnumeration for an example on
+        how to use these functions.
+
+        You need to use joinFactorsByVariable to join all of the factors 
+        that contain a variable in order for the autograder to 
+        recognize that you performed the correct interleaving of 
+        joins and eliminates.
+
+        If a factor that you are about to eliminate a variable from has 
+        only one unconditioned variable, you should not eliminate it 
+        and instead just discard the factor.  This is since the 
+        result of the eliminate would be 1 (you marginalize 
+        all of the unconditioned variables), but it is not a 
+        valid factor.  So this simplifies using the result of eliminate.
+
+        The sum of the probabilities should sum to one (so that it is a true 
+        conditional probability, conditioned on the evidence).
+        """
+        # this is for autograding -- don't modify
+        joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
+        eliminate             = eliminateWithCallTracking(callTrackingList)
+        if eliminationOrder is None:
+            eliminationVariables = bayesNet.variablesSet() - set(queryVariables) - set(evidenceDict.keys())
+            eliminationOrder = sorted(list(eliminationVariables))
+
+        currentFactorsList = bayesNet.getAllCPTsWithEvidence(evidenceDict)
+
+        for eliminationVariable in eliminationOrder:
+            currentFactorsList, joinedFactor = joinFactorsByVariable(
+                currentFactorsList, eliminationVariable
+            )
+
+            if len(joinedFactor.unconditionedVariables()) > 1:
+                reducedFactor = eliminate(joinedFactor, eliminationVariable)
+                currentFactorsList.append(reducedFactor)
+
+        fullJoint = joinFactors(currentFactorsList)
+        queryConditionedOnEvidence = normalize(fullJoint)
+
+        return queryConditionedOnEvidence
+
+    return inferenceByVariableElimination
