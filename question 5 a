@@ -1,0 +1,6 @@
+        total = self.total()
+        if total == 0:
+            return
+
+        for key in self:
+            self[key] /= total
