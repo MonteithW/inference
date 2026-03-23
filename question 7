@@ -1,0 +1,11 @@
+def elapseTime(self, gameState):
+    newBeliefs = DiscreteDistribution()
+
+    for oldPos in self.allPositions:
+        oldProb = self.beliefs[oldPos]
+        newPosDist = self.getPositionDistribution(gameState, oldPos)
+
+        for newPos, prob in newPosDist.items():
+            newBeliefs[newPos] += oldProb * prob
+
+    self.beliefs = newBeliefs
