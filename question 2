@@ -1,0 +1,42 @@
+def joinFactors(factors: List[Factor]):
+    """
+    Input factors is a list of factors.  
+    
+    You should calculate the set of unconditioned variables and conditioned 
+    variables for the join of those factors.
+
+    Return a new factor that has those variables and whose probability entries 
+    are product of the corresponding rows of the input factors.
+    """
+
+    # typecheck portion
+    setsOfUnconditioned = [set(factor.unconditionedVariables()) for factor in factors]
+    if len(factors) > 1:
+        intersect = functools.reduce(lambda x, y: x & y, setsOfUnconditioned)
+        if len(intersect) > 0:
+            print("Factor failed joinFactors typecheck: ", intersect)
+            raise ValueError("unconditionedVariables can only appear in one factor. \n"
+                    + "unconditionedVariables: " + str(intersect) + 
+                    "\nappear in more than one input factor.\n" + 
+                    "Input factors: \n" +
+                    "\n".join(map(str, factors)))
+
+    unconditionedVars = set()
+    conditionedVars = set()
+
+    for factor in factors:
+        unconditionedVars |= set(factor.unconditionedVariables())
+        conditionedVars |= set(factor.conditionedVariables())
+
+    conditionedVars -= unconditionedVars
+
+    variableDomainsDict = factors[0].variableDomainsDict()
+    joinedFactor = Factor(unconditionedVars, conditionedVars, variableDomainsDict)
+
+    for assignment in joinedFactor.getAllPossibleAssignmentDicts():
+        prob = 1.0
+        for factor in factors:
+            prob *= factor.getProbability(assignment)
+        joinedFactor.setProbability(assignment, prob)
+
+    return joinedFactor
