@@ -1,0 +1,39 @@
+    def chooseAction(self, gameState: busters.GameState):
+        """
+        First computes the most likely position of each ghost that has
+        not yet been captured, then chooses an action that brings
+        Pacman closest to the closest ghost (according to mazeDistance!).
+        """
+        pacmanPosition = gameState.getPacmanPosition()
+        legal = [a for a in gameState.getLegalPacmanActions()]
+        livingGhosts = gameState.getLivingGhosts()
+        livingGhostPositionDistributions = \
+            [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
+             if livingGhosts[i+1]]
+
+        # Find the most likely position of each living ghost
+        mostLikelyPositions = []
+        for dist in livingGhostPositionDistributions:
+            mostLikelyPositions.append(dist.argMax())
+
+        # Determine which of those ghosts is closest to Pacman
+        closestGhost = None
+        closestDistance = float('inf')
+        for ghostPos in mostLikelyPositions:
+            distance = self.distancer.getDistance(pacmanPosition, ghostPos)
+            if distance < closestDistance:
+                closestDistance = distance
+                closestGhost = ghostPos
+
+        # Pick the legal action that minimizes distance to the closest ghost
+        bestAction = Directions.STOP
+        bestDistance = float('inf')
+
+        for action in legal:
+            successorPosition = Actions.getSuccessor(pacmanPosition, action)
+            distance = self.distancer.getDistance(successorPosition, closestGhost)
+            if distance < bestDistance:
+                bestDistance = distance
+                bestAction = action
+
+        return bestAction
