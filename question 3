@@ -1,0 +1,56 @@
+def eliminateWithCallTracking(callTrackingList=None):
+
+    def eliminate(factor: Factor, eliminationVariable: str):
+        """
+        Input factor is a single factor.
+        Input eliminationVariable is the variable to eliminate from factor.
+        eliminationVariable must be an unconditioned variable in factor.
+        
+        You should calculate the set of unconditioned variables and conditioned 
+        variables for the factor obtained by eliminating the variable
+        eliminationVariable.
+
+        Return a new factor where all of the rows mentioning
+        eliminationVariable are summed with rows that match
+        assignments on the other variables.
+        """
+        # autograder tracking -- don't remove
+        if not (callTrackingList is None):
+            callTrackingList.append(('eliminate', eliminationVariable))
+
+        # typecheck portion
+        if eliminationVariable not in factor.unconditionedVariables():
+            print("Factor failed eliminate typecheck: ", factor)
+            raise ValueError("Elimination variable is not an unconditioned variable " \
+                            + "in this factor\n" + 
+                            "eliminationVariable: " + str(eliminationVariable) + \
+                            "\nunconditionedVariables:" + str(factor.unconditionedVariables()))
+        
+        if len(factor.unconditionedVariables()) == 1:
+            print("Factor failed eliminate typecheck: ", factor)
+            raise ValueError("Factor has only one unconditioned variable, so you " \
+                    + "can't eliminate \nthat variable.\n" + \
+                    "eliminationVariable:" + str(eliminationVariable) + "\n" +\
+                    "unconditionedVariables: " + str(factor.unconditionedVariables()))
+
+        unconditionedVars = set(factor.unconditionedVariables())
+        unconditionedVars.remove(eliminationVariable)
+        conditionedVars = set(factor.conditionedVariables())
+
+        newFactor = Factor(
+            unconditionedVars,
+            conditionedVars,
+            factor.variableDomainsDict()
+        )
+
+        for assignment in newFactor.getAllPossibleAssignmentDicts():
+            totalProb = 0
+            for value in factor.variableDomainsDict()[eliminationVariable]:
+                fullAssignment = assignment.copy()
+                fullAssignment[eliminationVariable] = value
+                totalProb += factor.getProbability(fullAssignment)
+            newFactor.setProbability(assignment, totalProb)
+
+        return newFactor
+
+    return eliminate
